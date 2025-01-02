@@ -96,19 +96,15 @@ const FloatingIsland = ({
         <LevelModal location={{ id, name }} onClose={handleClose} onComplete={onComplete} />
       )}
 
-      <style jsx>{`
-        @keyframes float {
-          0% {
-            transform: translateY(0);
+      <style>
+        {`
+          @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
           }
-          50% {
-            transform: translateY(-10px);
-          }
-          100% {
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </>
   );
 };

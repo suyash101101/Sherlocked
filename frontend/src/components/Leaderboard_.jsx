@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fetchLeaderboardData } from '../config/supabaseClient1';
-import { Trophy, PipetteIcon, Medal, GraduationCap, Crown } from 'lucide-react';
+import { Trophy, PipetteIcon, Medal, GraduationCap, Crown, Search } from 'lucide-react';
 
 const LeaderboardRow = ({ rank, name, score, delay }) => {
   const getRankStyles = (rank) => {
@@ -74,10 +74,11 @@ const Leaderboard = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); // Track errors
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = async (query = '') => {
     setLoading(true);
-    const { data, error } = await fetchLeaderboardData();
+    const { data, error } = await fetchLeaderboardData(query);
 
     if (error) {
       setError(error);
@@ -89,8 +90,12 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    fetchLeaderboard();
-  }, []);
+    const delayDebounceFn = setTimeout(() => {
+      fetchLeaderboard(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8">
@@ -101,14 +106,30 @@ const Leaderboard = () => {
           className="bg-stone-900/30 rounded-xl border border-stone-800/30 overflow-hidden shadow-2xl"
         >
           <div className="px-6 py-6 border-b border-stone-800/30">
-            <h2 className="text-2xl font-bold text-center text-stone-100 font-serif">
-              London's Elite Investigators
-            </h2>
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <img src="/image.png" alt="Sherlocked Logo" className="h-12 w-auto" />
+              <h2 className="text-2xl font-bold text-stone-100 font-serif">
+                Victorian Era's Finest
+              </h2>
+            </div>
             <p className="text-stone-400 text-center mt-2 text-sm">
-              The finest minds of Baker Street, ranked by their deductive prowess
+              The most brilliant minds of London, competing to become the next Sherlock Holmes
             </p>
           </div>
           
+          <div className="px-6 py-4">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for a detective..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 bg-stone-800/50 border border-stone-700/30 rounded-lg text-stone-100 placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+              />
+              <Search className="absolute right-3 top-2.5 text-stone-500" size={20} />
+            </div>
+          </div>
+
           {loading && (
             <motion.div 
               initial={{ opacity: 0 }}

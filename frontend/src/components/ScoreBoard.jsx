@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../config/supabaseClient';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Award, Star, TrendingUp, Crown, Medal, Brain, Award as AwardIcon, Target } from 'lucide-react';
 
 export default function ScoreBoard() {
   const [score, setScore] = useState(null); 
   const [loading, setLoading] = useState(true); 
   const [error, setError] = useState(null); 
   const [userId, setUserId] = useState(null);
-  // Fetch the total_score from the leaderboard table
+  const [rank, setRank] = useState(null);
+
   const fetchUserId = async () => {
     try {
-      // Step 1: Fetch authenticated user from auth
       const { data: session, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
   
@@ -21,7 +23,6 @@ export default function ScoreBoard() {
   
       const userEmail = user.email;
   
-      // Step 2: Use the email to fetch ID from the users table
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id') 
@@ -41,18 +42,17 @@ export default function ScoreBoard() {
   const fetchScore = async () => {
     try {
       setLoading(true);
-      // Query the leaderboard table
       const { data, error } = await supabase
-        .from('leaderboard') // Table name
-        .select('total_score') // Select the column
-        .eq('team_id', userId) // Filter by the specific row
+        .from('leaderboard')
+        .select('total_score')
+        .eq('team_id', userId)
 
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setScore(data[0].total_score); // Set the total_score
+        setScore(data[0].total_score);
       } else {
-        setScore(0); // Default to 0 if no data is found
+        setScore(0);
       }
     } catch (err) {
       console.error('Error fetching score:', err);
@@ -61,26 +61,111 @@ export default function ScoreBoard() {
       setLoading(false);
     }
   };
+
+  const getRankMessage = (position) => {
+    if (position === 1) return "London's Finest Detective";
+    if (position === 2) return "Scotland Yard's Pride";
+    if (position === 3) return "Master of Deduction";
+    if (position <= 10) return "Rising Detective Star";
+    if (position <= 20) return "Promising Investigator";
+    return "Aspiring Detective";
+  };
+
+  const getRankIcon = (position) => {
+    if (position === 1) return <Crown className="text-amber-400 w-6 h-6" />;
+    if (position === 2) return <Medal className="text-stone-400 w-6 h-6" />;
+    if (position === 3) return <Medal className="text-amber-700 w-6 h-6" />;
+    if (position <= 10) return <Brain className="text-amber-500/80 w-5 h-5" />;
+    return <Star className="text-amber-600/60 w-5 h-5" />;
+  };
+
   useEffect(() => {
     fetchUserId();
   }, []);
 
-  // Fetch the score after userId is set
   useEffect(() => {
     if (userId) {
       fetchScore();
     }
   }, [userId]);
 
+  useEffect(() => {
+    const fetchRank = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('leaderboard')
+          .select('team_id')
+          .order('total_score', { ascending: false });
+
+        if (error) throw error;
+
+        const position = data.findIndex(item => item.team_id === userId) + 1;
+        setRank(position);
+      } catch (err) {
+        console.error('Error fetching rank:', err);
+      }
+    };
+
+    if (userId) {
+      fetchRank();
+    }
+  }, [userId, score]);
+
   return (
-    <div className="absolute top-4 right-4 z-30 bg-gray-800 bg-opacity-75 px-4 py-2 rounded-lg shadow-lg">
-      {loading ? (
-        <h2 className="text-xl font-bold text-white">Loading...</h2>
-      ) : error ? (
-        <h2 className="text-xl font-bold text-red-500">{error}</h2>
-      ) : (
-        <h2 className="text-xl font-bold text-white">Score: {score}</h2>
-      )}
-    </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="relative group"
+    >
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        className="flex items-center gap-2 bg-gradient-to-r from-amber-950/80 to-stone-900/80 backdrop-blur-md px-3 py-2 rounded-lg border border-amber-800/30 shadow-lg hover:shadow-amber-900/20"
+      >
+        {rank && getRankIcon(rank)}
+        <div className="flex items-center gap-3">
+          <Target className="w-4 h-4 text-amber-500/70" />
+          <motion.span
+            key={score}
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="text-xl font-bold text-amber-400 font-mono tabular-nums"
+          >
+            {score || 0}
+          </motion.span>
+        </div>
+      </motion.div>
+
+      {/* Tooltip on hover */}
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
+          className="absolute right-0 top-full mt-2 w-48 p-3 bg-stone-900/95 backdrop-blur-md rounded-lg border border-amber-800/30 shadow-xl invisible group-hover:visible"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-stone-400 text-xs">Rank</span>
+              <span className="text-amber-400 font-medium">#{rank}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-stone-400 text-xs">Status</span>
+              <span className="text-amber-300 text-xs font-medium">{getRankMessage(rank)}</span>
+            </div>
+            <div className="border-t border-stone-800/50 my-2" />
+            <div className="text-center">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="text-amber-500/80"
+              >
+                <AwardIcon className="w-5 h-5 mx-auto mb-1" />
+              </motion.div>
+              <span className="text-[10px] text-stone-400">Keep solving to rank up!</span>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
   );
 }

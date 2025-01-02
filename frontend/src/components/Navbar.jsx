@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { Menu, X, MapPin, Trophy, Home as HomeIcon } from 'lucide-react';
+import ScoreBoard from './ScoreBoard';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,8 @@ function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <Link to="/sherlock" className="flex items-center space-x-2">
-            <span className="text-2xl font-serif font-bold bg-gradient-to-r from-amber-200 to-amber-400 text-transparent bg-clip-text">
+            <img src="/image.png" alt="Sherlocked Logo" className="h-8 w-auto" />
+            <span className="text-xl font-serif font-bold bg-gradient-to-r from-amber-200 to-amber-400 text-transparent bg-clip-text">
               Sherlocked
             </span>
           </Link>
@@ -22,7 +24,7 @@ function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             {[
               { name: 'Home', path: '/sherlock', icon: HomeIcon },
-              { name: 'Map', path: '/level', icon: MapPin }, // Changed display name but kept path
+              { name: 'Map', path: '/level', icon: MapPin },
               { name: 'Leaderboard', path: '/leaderboard', icon: Trophy }
             ].map((item) => (
               <Link
@@ -34,6 +36,10 @@ function Navbar() {
                 <span className="font-medium">{item.name}</span>
               </Link>
             ))}
+          </div>
+
+          <div className="hidden md:block">
+            <ScoreBoard />
           </div>
 
           <button className="md:hidden text-amber-200" onClick={() => setIsOpen(!isOpen)}>
@@ -58,6 +64,9 @@ function Navbar() {
                   <span>{item}</span>
                 </Link>
               ))}
+              <div className="pt-2 border-t border-amber-900/20">
+                <ScoreBoard />
+              </div>
             </div>
           </div>
         )}

@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import Questions from "./questions";
 import supabase from "../config/supabaseClient";
+import { updateScore } from '../config/supabaseClient1';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, BookOpen, ArrowLeft, Send, AlertCircle, CheckCircle2, Brain } from 'lucide-react';
 
 function LevelModal({ location, onClose }) {
   const { id } = location;
@@ -11,6 +14,7 @@ function LevelModal({ location, onClose }) {
   const [totalScore, setTotalScore] = useState(0);
   const [userId, setUserId] = useState(null);
   const [currentAttempts, setCurrentAttempts] = useState(0);
+  const [attempts, setAttempts] = useState({});
 
   const MAX_ATTEMPTS = 100;
 
@@ -143,7 +147,7 @@ function LevelModal({ location, onClose }) {
             return acc;
           }, {});
 
-          setWrongAttempts(attemptsMap);
+          setAttempts(attemptsMap);
         }
       } catch (err) {
         console.error("Error initializing state:", err);
@@ -165,14 +169,10 @@ function LevelModal({ location, onClose }) {
 
   // Handle answer submission
   const handleAnswerSubmit = async () => {
-    if (!selectedQuestion) return;
+    if (!selectedQuestion || !userId) return;
 
     try {
-      // Prevent further attempts if max attempts reached or question is solved
-      if (currentAttempts >= MAX_ATTEMPTS || solvedQuestions.has(selectedQuestion.id)) return;
-
-      // Fetch the correct answer for the selected question from Supabase
-      const { data: questionData, error: questionError} = await supabase
+      const { data: questionData, error: questionError } = await supabase
         .from("questions")
         .select("answer, points")
         .eq("id", selectedQuestion.id)
@@ -180,68 +180,63 @@ function LevelModal({ location, onClose }) {
 
       if (questionError) throw questionError;
 
-      const correctAnswer = questionData?.answer;
-      const pointsEarned = questionData?.points;
+      const isCorrect = userAnswer === questionData.answer;
+      const currentAttempt = attempts[selectedQuestion.id] || 0;
+      const newAttempts = currentAttempt + 1;
 
-      if (userAnswer === correctAnswer) {
-        // Mark question as solved
-        setSolvedQuestions((prev) => new Set(prev).add(selectedQuestion.id));
+      // Update attempts
+      setAttempts(prev => ({
+        ...prev,
+        [selectedQuestion.id]: newAttempts
+      }));
 
-        const newScore = totalScore + pointsEarned;
-        setTotalScore(newScore);
-
-        // Update database when the question is solved
-        const solvedAt = new Date().toISOString();
+      if (isCorrect && !solvedQuestions.has(selectedQuestion.id)) {
+        // Update score in leaderboard
+        await updateScore(userId, questionData.points);
+        
+        // Update team progress
         await supabase
           .from("team_progress")
-          .upsert(
-            [
-              {
-                team_id: userId,
-                question_id: selectedQuestion.id,
-                is_solved: true,
-                solution: userAnswer,
-                solved_at: solvedAt,
-                points_earned: pointsEarned,
-                attempts: currentAttempts,
-              },
-            ],
-            { onConflict: ["team_id", "question_id"] }
-          );
+          .upsert([
+            {
+              team_id: userId,
+              question_id: selectedQuestion.id,
+              is_solved: true,
+              attempts: newAttempts,
+              points_earned: questionData.points,
+              solved_at: new Date().toISOString()
+            }
+          ]);
+
+        setSolvedQuestions(prev => new Set(prev).add(selectedQuestion.id));
       } else {
-        // Increment wrong attempts
-        const updatedAttempts = currentAttempts + 1;
-        setCurrentAttempts(updatedAttempts);
-
-        // Update wrong attempts in the database
+        // Update attempts for wrong answer
         await supabase
           .from("team_progress")
-          .upsert(
-            [
-              {
-                team_id: userId,
-                question_id: selectedQuestion.id,
-                is_solved: false,
-                attempts: updatedAttempts,
-              },
-            ],
-            { onConflict: ["team_id", "question_id"] }
-          );
+          .upsert([
+            {
+              team_id: userId,
+              question_id: selectedQuestion.id,
+              is_solved: false,
+              attempts: newAttempts
+            }
+          ]);
       }
     } catch (err) {
-      console.error("Error submitting answer:", err);
+      console.error("Error processing answer:", err);
     }
 
-    setUserAnswer(""); // Reset input field
+    setUserAnswer("");
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center">
-      <div
-        className="lg:w-[70em] lg:h-[70em] lg:mt-80 md:w-[45em] md:h-[45em] sm:w-[35em] sm:h-[35em] w-[30em] h-[30em] bg-contain bg-no-repeat bg-center relative transition-transform duration-200 ease-in-out"
-        style={{
-          backgroundImage: "url('/scroll.png')",
-        }}
+      <motion.div
+        className="lg:w-[70em] lg:h-[70em] lg:mt-80 md:w-[45em] md:h-[45em] sm:w-[35em] sm:h-[35em] w-[30em] h-[30em] bg-contain bg-no-repeat bg-center relative"
+        style={{ backgroundImage: "url('/scroll.png')" }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
       >
         <button
           className="absolute lg:right-32 md:right-20 lg:mt-40 md:mt-28 mt-16 right-16 text-orange-950 text-3xl font-extrabold"
@@ -250,62 +245,120 @@ function LevelModal({ location, onClose }) {
           &times;
         </button>
 
-        <div className="flex flex-col items-center lg:mt-64 md:mt-40 sm:mt-28 mt-24">
-          <h2 className="lg:text-4xl md:text-2xl text-xl font-extrabold text-orange-950">
-            {selectedQuestion ? selectedQuestion.title : chapterName || " "}
-          </h2>
+        <div className="flex flex-col items-center lg:mt-56 md:mt-36 sm:mt-24 mt-20">
+          <motion.h2 
+            className="lg:text-3xl md:text-xl text-lg font-bold text-amber-950 mb-4 flex items-center gap-2"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+          >
+            {selectedQuestion ? (
+              <>
+                <Brain className="w-6 h-6 text-amber-700" />
+                {selectedQuestion.title}
+              </>
+            ) : (
+              <>
+                <BookOpen className="w-6 h-6 text-amber-700" />
+                {chapterName || " "}
+              </>
+            )}
+          </motion.h2>
 
-          {!selectedQuestion ? (
-            <Questions
-              chapterId={id}
-              teamId={userId}
-              onQuestionSelect={handleQuestionSelect}
-              solvedQuestions={solvedQuestions}
-            />
-          ) : (
-            <div className="lg:p-6 py-3 px-5 bg-orange-950 text-white rounded-lg w-[70%] text-center">
-              <p className="mb-6 lg:max-h-[10em] sm:max-h-[4em] max-h-[2em] overflow-y-scroll md:text-base text-xs">{selectedQuestion.description}</p>
-              {solvedQuestions.has(selectedQuestion.id) ? (
-                <p className="text-green-500 font-bold">Correct Answer!</p>
-              ) : currentAttempts >= MAX_ATTEMPTS ? (
-                <p className="text-red-500 font-bold">
-                  Maximum attempts exceeded.
-                </p>
-              ) : (
-                <>
-                  <input
-                    type="text"
-                    placeholder="Type your answer here..."
-                    className="lg:p-2 p-1 rounded border w-3/4 sm:text-base text-xs text-gray-900"
-                    value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
-                    disabled={solvedQuestions.has(selectedQuestion.id)}
-                  />
-                  <button
-                    onClick={handleAnswerSubmit}
-                    className="sm:ml-2 ml-1 px-4 sm:py-2 py-1 lg:text-base text-xs bg-yellow-500 text-black rounded hover:bg-yellow-600"
-                  >
-                    Submit
-                  </button>
-                  <p className="text-red-500 mt-2 lg:text-base text-sm">
-                    Wrong Attempts: {currentAttempts}/{MAX_ATTEMPTS}
-                  </p>
-                </>
-              )}
-              <button
-                className="text-yellow-500 hover:text-yellow-300 text-xs mt-2"
-                onClick={handleBackClick}
+          <div className="w-[85%] mx-auto">
+            {!selectedQuestion ? (
+              <Questions
+                chapterId={id}
+                teamId={userId}
+                onQuestionSelect={handleQuestionSelect}
+                solvedQuestions={solvedQuestions}
+              />
+            ) : (
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="lg:p-6 py-3 px-5 bg-gradient-to-br from-amber-950/90 to-stone-950/90 backdrop-blur-md rounded-lg w-[70%] mx-auto shadow-xl border border-amber-900/20"
               >
-                &lt; Back to Questions
-              </button>
-            </div>
-          )}
+                <div className="relative">
+                  <motion.div
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-6 lg:max-h-[10em] sm:max-h-[4em] max-h-[2em] overflow-y-auto scrollbar-thin scrollbar-thumb-amber-900/30 scrollbar-track-transparent"
+                  >
+                    <p className="text-amber-100/90 leading-relaxed">{selectedQuestion.description}</p>
+                  </motion.div>
 
-          {/* <div className="lg:mt-0 mt-[-1em] text-orange-950 lg:text-2xl text-sm font-bold">
-            Total Score: {totalScore}
-          </div> */}
+                  <AnimatePresence mode="wait">
+                    {solvedQuestions.has(selectedQuestion.id) ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="flex flex-col items-center gap-3 py-4"
+                      >
+                        <motion.div
+                          animate={{ rotate: [0, 15, -15, 0] }}
+                          transition={{ duration: 0.5, delay: 0.2 }}
+                        >
+                          <Sparkles className="w-12 h-12 text-amber-400" />
+                        </motion.div>
+                        <p className="text-green-400 font-bold text-lg">Brilliant Deduction!</p>
+                      </motion.div>
+                    ) : currentAttempts >= MAX_ATTEMPTS ? (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-center py-4"
+                      >
+                        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-2" />
+                        <p className="text-red-400 font-bold">Maximum attempts reached</p>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-4"
+                      >
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Enter your deduction..."
+                            className="w-full px-4 py-3 bg-stone-900/50 border border-amber-900/30 rounded-lg text-amber-100 placeholder-amber-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                            value={userAnswer}
+                            onChange={(e) => setUserAnswer(e.target.value)}
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={handleAnswerSubmit}
+                            className="absolute right-2 top-2 p-1.5 bg-amber-700/30 hover:bg-amber-600/40 rounded-md text-amber-100"
+                          >
+                            <Send className="w-5 h-5" />
+                          </motion.button>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-xs text-amber-700">
+                          <span>Attempts: {currentAttempts}/{MAX_ATTEMPTS}</span>
+                          <span>{MAX_ATTEMPTS - currentAttempts} deductions remaining</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <motion.button
+                    whileHover={{ x: -5 }}
+                    onClick={handleBackClick}
+                    className="mt-4 flex items-center gap-2 text-amber-600 hover:text-amber-500 text-sm"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Cases
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

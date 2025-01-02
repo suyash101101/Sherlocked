@@ -5,6 +5,7 @@ import ScoreBoard from '../components/ScoreBoard';
 import ConnectingPaths from '../components/ConnectingPaths';
 import LevelModal from '../components/LevelModal';
 import DetectiveBobblehead from '../components/DetectiveBobblehead';
+import { initializeLeaderboard } from '../config/supabaseClient1';
 
 
 const islands = [
@@ -25,50 +26,44 @@ export default function Level() {
 
   const fetchUserId = async () => {
     try {
-      // Step 1: Fetch authenticated user from auth
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-  
+      const { data: session } = await supabase.auth.getSession();
       const user = session?.session?.user;
+      
       if (!user) {
         console.error("No authenticated user found.");
         return;
       }
-  
-      const userEmail = user.email;
-  
-      // Step 2: Use the email to fetch ID from the users table
+
       const { data: userData, error: userError } = await supabase
         .from('users')
-        .select('id') 
-        .eq('email', userEmail) 
+        .select('id, team_name')
+        .eq('email', user.email)
         .single();
-  
+
       if (userError) throw userError;
-  
+
       if (userData) {
         setUserId(userData.id);
+        // Initialize leaderboard entry for new users
+        await initializeLeaderboard(userData.id, userData.team_name);
       }
     } catch (err) {
       console.error('Error fetching user ID:', err);
     }
   };
-  
 
   const fetchScore = async () => {
     try {
       if (!userId) return;
       const { data, error } = await supabase
-        .from('leaderboard') // Table name
-        .select('total_score') // Select the column
-        .eq('team_id', userId) // Filter by the specific row
-        .single(); // Fetch a single row
+        .from('leaderboard')
+        .select('total_score')
+        .eq('team_id', userId)
+        .maybeSingle(); // Use maybeSingle instead of single
 
       if (error) throw error;
 
-      if (data) {
-        setScore(data.total_score || 0); // Set the fetched score
-      }
+      setScore(data?.total_score || 0);
     } catch (err) {
       console.error('Error fetching score:', err);
     }
@@ -96,9 +91,6 @@ export default function Level() {
     <div className="sherlock-background bg-[url('https://static.vecteezy.com/system/resources/previews/036/105/309/non_2x/ai-generated-vintage-map-of-the-world-on-the-old-paper-background-sepia-tone-ai-generated-free-photo.jpg')] bg-no-repeat bg-cover bg-center object-cover relative h-[85em] lg:h-[90em]">
       <div className="absolute inset-0 bg-black bg-opacity-40" />
       
-      {/* Pass the score to ScoreBoard */}
-      <ScoreBoard score={score} />
-
       <main className="relative z-10 h-screen">
         <ConnectingPaths islands={islands} unlockedLevel={unlockedLevel} />
 
