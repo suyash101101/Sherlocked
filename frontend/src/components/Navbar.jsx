@@ -1,12 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
-import { Menu, X, MapPin, Trophy, Home as HomeIcon } from 'lucide-react';
+import { Menu, X, MapPin, Trophy, Home as HomeIcon, LogOut } from 'lucide-react';
 import ScoreBoard from './ScoreBoard';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isLevel = location.pathname === '/level';
+
+  const handleLogout = () => {
+    // Add your logout logic here
+    localStorage.removeItem('token'); // or whatever auth token you're using
+    window.location.href = '/'; // or use navigate to redirect
+  };
 
   return (
     <nav className={`fixed w-full z-50 ${
@@ -36,6 +42,15 @@ function Navbar() {
                 <span className="font-medium">{item.name}</span>
               </Link>
             ))}
+            
+            <button
+              onClick={handleLogout}
+              className="text-amber-200/80 hover:text-amber-100 transition-all duration-200 
+                       flex items-center space-x-2 group hover:scale-105"
+            >
+              <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
+              <span className="font-medium">Logout</span>
+            </button>
           </div>
 
           <div className="hidden md:block">
@@ -67,6 +82,14 @@ function Navbar() {
               <div className="pt-2 border-t border-amber-900/20">
                 <ScoreBoard />
               </div>
+              <button
+                onClick={handleLogout}
+                className="text-amber-200/80 hover:text-amber-100 transition-all duration-200 
+                         flex items-center space-x-2 pt-2 border-t border-amber-900/20"
+              >
+                <LogOut size={18} />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         )}

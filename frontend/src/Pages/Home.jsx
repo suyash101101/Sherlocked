@@ -16,11 +16,16 @@ function Home() {
             rgba(0, 0, 0, 0.92), 
             rgba(0, 0, 0, 0.88)
           ),
-          url('/src/img.jpg')
-        `,
+          url('/img.jpg')`,  // This path now correctly points to public/img.jpg
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh',
+        position: 'fixed',
+        width: '100%',
+        top: 0,
+        left: 0,
+        zIndex: 0
       }}
     >
       {/* Victorian era pattern using CSS grid */}
