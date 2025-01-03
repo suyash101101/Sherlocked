@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './Pages/Home';
 import Level from './Pages/Level';
@@ -28,6 +28,8 @@ function App() {
           <Route path="/sherlock" element={<Home />} />
           <Route path="/level" element={<ProtectedRoute><Level /></ProtectedRoute>} />
           <Route path='/leaderboard' element={<Leaderboard/>}/>
+          <Route path="/map" element={<Navigate to="/level" replace />} />
+          <Route path="*" element={<Navigate to="/sherlock" replace />} />
         </Routes>
       </Layout>
     </Router>
