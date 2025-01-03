@@ -4,9 +4,42 @@ import { PipetteIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, XCircle, Lock, Brain, Award, Clock } from 'lucide-react';
 
+// Define MAX_ATTEMPTS at the top level
+const MAX_ATTEMPTS = 25;
+
 function Questions({ chapterId, onQuestionSelect, teamId }) {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleQuestionSelect = async (question) => {
+    try {
+      const { data: progress } = await supabase
+        .from('team_progress')
+        .select('*')
+        .eq('team_id', teamId)
+        .eq('question_id', question.id)
+        .single();
+
+      if (progress?.is_solved) {
+        toast.info("You've already solved this question!");
+        return;
+      }
+
+      if (progress?.attempts >= MAX_ATTEMPTS) {
+        toast.error("Maximum attempts reached for this question!");
+        return;
+      }
+
+      onQuestionSelect({
+        ...question,
+        currentAttempts: progress?.attempts || 0,
+        remainingAttempts: MAX_ATTEMPTS - (progress?.attempts || 0)
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error loading question');
+    }
+  };
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -42,7 +75,8 @@ function Questions({ chapterId, onQuestionSelect, teamId }) {
               ...question,
               is_solved: progress?.is_solved || false,
               attempts: progress?.attempts || 0,
-              points_earned: progress?.points_earned || 0
+              points_earned: progress?.points_earned || 0,
+              max_attempts: MAX_ATTEMPTS // Add max_attempts to question object
             };
           });
 
@@ -124,7 +158,7 @@ function Questions({ chapterId, onQuestionSelect, teamId }) {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => !question.is_solved && onQuestionSelect(question)}
+                    onClick={() => !question.is_solved && handleQuestionSelect(question)}
                     disabled={question.is_solved}
                     className={`px-2 py-0.5 rounded text-[10px] font-medium ${
                       question.is_solved
@@ -142,9 +176,23 @@ function Questions({ chapterId, onQuestionSelect, teamId }) {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-stone-800">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${(question.attempts / MAX_ATTEMPTS) * 100}%` }}
-                    className="h-full bg-amber-600/70"
+                    animate={{ 
+                      width: `${(question.attempts / question.max_attempts) * 100}%`,
+                      backgroundColor: question.attempts >= MAX_ATTEMPTS - 5 ? '#ef4444' : '#d97706'
+                    }}
+                    className="h-full"
                   />
+                </div>
+              )}
+
+              {/* Attempts counter */}
+              {!question.is_solved && question.attempts > 0 && (
+                <div className="absolute top-2 right-2 text-xs">
+                  <span className={`${
+                    question.attempts >= MAX_ATTEMPTS - 5 ? 'text-red-400' : 'text-amber-400'
+                  }`}>
+                    {MAX_ATTEMPTS - question.attempts} attempts left
+                  </span>
                 </div>
               )}
             </motion.div>
@@ -155,4 +203,6 @@ function Questions({ chapterId, onQuestionSelect, teamId }) {
   );
 }
 
+// Export MAX_ATTEMPTS for use in other components
+export { MAX_ATTEMPTS };
 export default Questions;

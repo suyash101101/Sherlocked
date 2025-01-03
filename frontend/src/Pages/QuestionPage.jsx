@@ -1,36 +1,80 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import questionsData from '../data/questions.json';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCookies } from 'react-cookie';
+import { toast } from 'react-toastify';
+import supabase from '../config/supabaseClient';
+import { initializeProgress, updateAttempt, getProgress, MAX_ATTEMPTS } from '../utils/progressHandler';
+import { updateTeamProgress, getTeamProgress, handleQuestionAttempt, checkQuestionStatus } from '../config/supabaseClient';
 
 function QuestionPage() {
+  const [cookies] = useCookies(['userId']);
   const { chapterId, questionId } = useParams();
   const navigate = useNavigate();
   const [question, setQuestion] = useState(null);
   const [answer, setAnswer] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [isSolved, setIsSolved] = useState(false);
   const [showHint, setShowHint] = useState(false);
-  const MAX_ATTEMPTS = 3; // or whatever number you want to set
 
   useEffect(() => {
-    const chapterData = questionsData.chapters.find(c => c.id === parseInt(chapterId));
-    if (chapterData) {
-      const questionData = chapterData.questions.find(q => q.id === parseInt(questionId));
-      if (questionData) {
-        setQuestion(questionData);
+    const checkProgress = async () => {
+      try {
+        const status = await checkQuestionStatus(cookies.userId, questionId);
+        setAttempts(status.attempts || 0);
+        setIsSolved(status.is_solved);
+        
+        if (status.is_solved) {
+          toast.info("You've already solved this question!");
+          navigate('/level');
+        }
+      } catch (error) {
+        console.error('Error checking progress:', error);
       }
-    }
-  }, [chapterId, questionId]);
+    };
 
-  const handleSubmit = (e) => {
+    checkProgress();
+  }, [questionId, cookies.userId]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (answer === question.answer) {
-      setFeedback('Correct! Well done!');
-      // Save progress
-      const savedProgress = JSON.parse(localStorage.getItem(`chapter${chapterId}Progress`) || '{}');
-      savedProgress[questionId] = true;
-      localStorage.setItem(`chapter${chapterId}Progress`, JSON.stringify(savedProgress));
-    } else {
-      setFeedback('Incorrect. Try again!');
+    if (isSubmitting || isSolved) return;
+    setIsSubmitting(true);
+
+    try {
+      const isCorrect = answer.trim().toLowerCase() === question.answer.toLowerCase();
+      const result = await handleQuestionAttempt(
+        cookies.userId, 
+        questionId, 
+        isCorrect, 
+        isCorrect ? question.points : 0
+      );
+
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      setAttempts(result.attempts);
+
+      if (isCorrect) {
+        setIsSolved(true);
+        toast.success('Correct! Well done!');
+        setTimeout(() => navigate('/level'), 2000);
+      } else {
+        setShowError(true);
+        setAnswer('');
+        toast.error(`Wrong answer! ${MAX_ATTEMPTS - result.attempts} attempts remaining`);
+        setTimeout(() => setShowError(false), 500);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error submitting answer');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -51,7 +95,12 @@ function QuestionPage() {
         <div className="bg-stone-900/70 p-4 sm:p-6 rounded-lg mb-8 backdrop-blur-sm">
           <p className="text-stone-200 text-sm sm:text-base">{question.description}</p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <motion.form 
+          onSubmit={handleSubmit} 
+          animate={showError ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+          transition={{ duration: 0.4 }}
+          className="space-y-4"
+        >
           <div>
             <label htmlFor="answer" className="block text-sm font-medium text-gray-300 mb-2">
               Your Answer
@@ -80,7 +129,22 @@ function QuestionPage() {
               {showHint ? 'Hide Hint' : 'Show Hint'}
             </button>
           </div>
-        </form>
+          <div className="mt-4">
+            <div className="flex justify-between text-sm text-stone-400">
+              <span>Attempts: {attempts}/{MAX_ATTEMPTS}</span>
+              {isSolved && <span className="text-green-500">Completed!</span>}
+            </div>
+            <div className="h-1 bg-stone-800 rounded mt-1">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(attempts/MAX_ATTEMPTS) * 100}%` }}
+                className={`h-full rounded ${
+                  attempts > MAX_ATTEMPTS - 5 ? 'bg-red-600' : 'bg-amber-600'
+                }`}
+              />
+            </div>
+          </div>
+        </motion.form>
         {showHint && (
           <div className="mt-4 p-4 bg-yellow-600 rounded">
             <p className="font-bold">Hint:</p>
