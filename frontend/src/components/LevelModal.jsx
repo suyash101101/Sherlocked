@@ -16,7 +16,7 @@ function LevelModal({ location, onClose }) {
   const [currentAttempts, setCurrentAttempts] = useState(0);
   const [attempts, setAttempts] = useState({});
 
-  const MAX_ATTEMPTS = 100;
+  const MAX_ATTEMPTS = 25;
 
   const fetchUserId = async () => {
     try {
@@ -183,6 +183,7 @@ function LevelModal({ location, onClose }) {
       const isCorrect = userAnswer === questionData.answer;
       const currentAttempt = attempts[selectedQuestion.id] || 0;
       const newAttempts = currentAttempt + 1;
+      setCurrentAttempts(newAttempts);
 
       // Update attempts
       setAttempts(prev => ({
@@ -206,7 +207,9 @@ function LevelModal({ location, onClose }) {
               points_earned: questionData.points,
               solved_at: new Date().toISOString()
             }
-          ]);
+          ],
+          { onConflict: ["team_id", "question_id"] }
+        );
 
         setSolvedQuestions(prev => new Set(prev).add(selectedQuestion.id));
       } else {
@@ -220,7 +223,9 @@ function LevelModal({ location, onClose }) {
               is_solved: false,
               attempts: newAttempts
             }
-          ]);
+          ],
+          { onConflict: ["team_id", "question_id"] }
+        );
       }
     } catch (err) {
       console.error("Error processing answer:", err);
@@ -251,17 +256,12 @@ function LevelModal({ location, onClose }) {
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
           >
-            {selectedQuestion ? (
-              <>
-                <Brain className="w-6 h-6 text-amber-700" />
-                {selectedQuestion.title}
-              </>
-            ) : (
-              <>
-                <BookOpen className="w-6 h-6 text-amber-700" />
-                {chapterName || " "}
-              </>
-            )}
+            {selectedQuestion ? null : (
+    <>
+      <BookOpen className="w-6 h-6 text-amber-700" />
+      {chapterName || " "}
+    </>
+  )}
           </motion.h2>
 
           <div className="w-[85%] mx-auto">
@@ -276,14 +276,14 @@ function LevelModal({ location, onClose }) {
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="lg:p-6 py-3 px-5 bg-gradient-to-br from-amber-950/90 to-stone-950/90 backdrop-blur-md rounded-lg w-[70%] mx-auto shadow-xl border border-amber-900/20"
+                className="lg:p-6 py-3 px-5 bg-gradient-to-br from-amber-950/90 to-stone-950/90 backdrop-blur-md rounded-lg w-[98%] mx-auto shadow-xl border border-amber-900/20"
               >
                 <div className="relative">
                   <motion.div
                     initial={{ y: 10, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className="mb-6 lg:max-h-[10em] sm:max-h-[4em] max-h-[2em] overflow-y-auto scrollbar-thin scrollbar-thumb-amber-900/30 scrollbar-track-transparent"
+                    className="mb-6 lg:max-h-[13em] sm:max-h-[7em] max-h-[5em] overflow-y-auto scrollbar-thin scrollbar-thumb-amber-900/30 scrollbar-track-transparent"
                   >
                     <p className="text-amber-100/90 leading-relaxed">{selectedQuestion.description}</p>
                   </motion.div>

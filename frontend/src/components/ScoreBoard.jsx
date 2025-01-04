@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../config/supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Award, Star, TrendingUp, Crown, Medal, Brain, Award as AwardIcon, Target } from 'lucide-react';
+import { Award, Star, Crown, Medal, Brain, Award as AwardIcon, Target } from 'lucide-react';
 
 export default function ScoreBoard() {
   const [score, setScore] = useState(null); 
@@ -89,27 +89,40 @@ export default function ScoreBoard() {
     }
   }, [userId]);
 
+  const fetchRank = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .select('team_id')
+        .order('total_score', { ascending: false });
+
+      if (error) throw error;
+
+      const position = data.findIndex(item => item.team_id === userId) + 1;
+      setRank(position);
+    } catch (err) {
+      console.error('Error fetching rank:', err);
+    }
+  };
+
   useEffect(() => {
-    const fetchRank = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('leaderboard')
-          .select('team_id')
-          .order('total_score', { ascending: false });
-
-        if (error) throw error;
-
-        const position = data.findIndex(item => item.team_id === userId) + 1;
-        setRank(position);
-      } catch (err) {
-        console.error('Error fetching rank:', err);
-      }
-    };
-
     if (userId) {
       fetchRank();
     }
   }, [userId, score]);
+
+  // Polling for updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (userId) {
+        fetchScore();
+        fetchRank(); // Re-fetch rank when score changes
+      }
+    }, 5000); // Poll every 5 seconds (adjust as needed)
+
+    // Cleanup on unmount
+    return () => clearInterval(interval);
+  }, [userId]);
 
   return (
     <motion.div
