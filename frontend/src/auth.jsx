@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useCookies } from "react-cookie";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Lock, Mail, Users, LogOut, Footprints, ScrollText } from "lucide-react";
+import { Lock, Mail, Users, LogOut, Footprints, ScrollText, Eye, EyeOff } from "lucide-react";
 import supabase from "./config/supabaseClient";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -11,6 +11,7 @@ function ContestPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [teamName, setTeamName] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -23,6 +24,10 @@ function ContestPage() {
       }
     }
   }, [location]);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   const handleSignIn = async () => {
     try {
@@ -47,9 +52,12 @@ function ContestPage() {
       if (fetchError || !data) {
         throw fetchError || new Error("User not found");
       }
-
+      
       setCookie("userId", data.id, { path: "/" });
       navigate("/sherlock");
+
+      window.location.reload();
+
     } catch (error) {
       toast.error("Wrong Credentials. Sign Up Before Login");
       console.error(error);
@@ -158,7 +166,7 @@ function ContestPage() {
           <div className="text-center mb-8">
             <ScrollText className="w-16 h-16 text-amber-400 mx-auto mb-6" />
             <h1 className="text-3xl font-bold text-amber-100 font-serif">
-              Scotland Yard Registry
+              Detective Registry
             </h1>
             <p className="text-stone-400 mt-2 font-serif italic">
               "Once you eliminate the impossible, whatever remains, however improbable, must be the truth."
@@ -196,14 +204,21 @@ function ContestPage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-amber-600/50" size={18} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Secret Code"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-stone-800/50 border border-amber-900/20 rounded-lg py-3 px-10 
                            text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600/50
-                           transition-all duration-200"
+                           transition-all duration-200 pr-10"
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-amber-600/50 focus:outline-none"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 

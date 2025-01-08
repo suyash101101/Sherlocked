@@ -12,8 +12,10 @@ const FloatingIsland = ({
   onComplete,
   score,
   unlockThreshold,
+  backgroundImage, // New prop for the level image
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false); // Track hover state
   const [mousePosition, setMousePosition] = useState({ rotateX: 0, rotateY: 0 });
   const [isMouseMoved, setIsMouseMoved] = useState(false); // Track mouse movement
 
@@ -27,6 +29,15 @@ const FloatingIsland = ({
     setIsModalOpen(false);
   };
 
+  const handleMouseEnter = () => {
+    setIsHovered(true); // Show tooltip on hover
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false); // Hide tooltip when mouse leaves
+    setIsMouseMoved(false); // Reset mouse movement
+  };
+
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;
     const centerX = window.innerWidth / 4;
@@ -37,10 +48,6 @@ const FloatingIsland = ({
 
     setMousePosition({ rotateX, rotateY });
     setIsMouseMoved(true); // Set to true when mouse is moved
-  };
-
-  const handleMouseLeave = () => {
-    setIsMouseMoved(false); // Reset when mouse leaves
   };
 
   return (
@@ -57,7 +64,8 @@ const FloatingIsland = ({
         }}
         onClick={handleClick}
         onMouseMove={isUnlocked ? handleMouseMove : null} // Apply mouse hover effect only if unlocked
-        onMouseLeave={handleMouseLeave} // Reset when mouse leaves
+        onMouseEnter={handleMouseEnter} // Show tooltip when mouse enters
+        onMouseLeave={handleMouseLeave} // Hide tooltip when mouse leaves
       >
         {/* Glowing effect behind the level image */}
         <div
@@ -74,7 +82,7 @@ const FloatingIsland = ({
         <div
           className="lg:w-60 lg:h-60 md:w-40 md:h-40 w-40 h-40 bg-contain bg-no-repeat bg-center relative transition-transform duration-200 ease-in-out"
           style={{
-            backgroundImage: "url('/221b.png')",
+            backgroundImage: `url(${backgroundImage})`, // Use the passed backgroundImage prop
             transform: `rotateX(${isMouseMoved ? mousePosition.rotateX : 0}deg) rotateY(${isMouseMoved ? mousePosition.rotateY : 0}deg)`,
             transition: "transform 0.3s ease-out", // Smooth transition when returning to original state
           }}
@@ -88,6 +96,12 @@ const FloatingIsland = ({
               alt="Locked Icon"
               className="lg:w-40 lg:h-40 md:w-28 md:h-28 w-20 h-20 " // Adjust width and height as needed
             />
+            {/* Tooltip: Show only when hovered */}
+            {isHovered && (
+              <div className="absolute top-[1.5em] right-[-3em] p-2 bg-[#160b05] text-white text-sm rounded-md shadow-md">
+                Unlock with {unlockThreshold} points
+              </div>
+            )}
           </div>
         )}
       </div>

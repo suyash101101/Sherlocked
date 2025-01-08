@@ -1,34 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import supabase from '../config/supabaseClient';
 import FloatingIsland from '../components/FloatingIsland';
-import ScoreBoard from '../components/ScoreBoard';
 import ConnectingPaths from '../components/ConnectingPaths';
 import LevelModal from '../components/LevelModal';
-import DetectiveBobblehead from '../components/DetectiveBobblehead';
 import { initializeLeaderboard } from '../config/supabaseClient1';
 
-
 const islands = [
-  { id: 1, name: "Baker Street", x: 5, y: 10 },
-  { id: 2, name: "Scotland Yard", x: 15, y: 65 },
-  { id: 3, name: "British Museum", x: 38, y: 20 },
-  { id: 4, name: "Tower Bridge", x: 55, y: 76 },
-  { id: 5, name: "Buckingham Palace", x: 70, y: 22 },
+  { id: 1, name: "Baker Street", x: 5, y: 10, image: "/221b.png" },
+  { id: 2, name: "Scotland Yard", x: 15, y: 65, image: "/221b.png" },
+  { id: 3, name: "British Museum", x: 38, y: 20, image: "/221b.png" },
+  { id: 4, name: "Tower Bridge", x: 55, y: 76, image: "/221b.png" },
+  { id: 5, name: "Buckingham Palace", x: 70, y: 22, image: "/221b.png" },
 ];
 
-const unlockThresholds = [0, 300, 600, 800, 1000]; // Example score thresholds for each level
+const unlockThresholds = [0, 300, 600, 800, 1000];
 
 export default function Level() {
-  const [unlockedLevel, setUnlockedLevel] = useState(1); // Default to the first level
-  const [score, setScore] = useState(null); // Fetched total score
-  const [showModal, setShowModal] = useState(false); // Controls modal visibility
+  const [unlockedLevel, setUnlockedLevel] = useState(1);
+  const [score, setScore] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [userId, setUserId] = useState(null);
 
   const fetchUserId = async () => {
     try {
       const { data: session } = await supabase.auth.getSession();
       const user = session?.session?.user;
-      
+
       if (!user) {
         console.error("No authenticated user found.");
         return;
@@ -44,7 +41,6 @@ export default function Level() {
 
       if (userData) {
         setUserId(userData.id);
-        // Initialize leaderboard entry for new users
         await initializeLeaderboard(userData.id, userData.team_name);
       }
     } catch (err) {
@@ -59,7 +55,7 @@ export default function Level() {
         .from('leaderboard')
         .select('total_score')
         .eq('team_id', userId)
-        .maybeSingle(); // Use maybeSingle instead of single
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -69,22 +65,26 @@ export default function Level() {
     }
   };
 
-  // Unlock levels dynamically based on score
+  useEffect(() => {
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    if (userId) fetchScore();
+  }, [userId]);
+
+  // Dynamically calculate unlocked levels whenever score changes
   useEffect(() => {
     if (score !== null) {
       const nextLevel = unlockThresholds.findIndex((threshold) => score >= threshold) + 1;
       setUnlockedLevel(nextLevel);
     }
   }, [score]);
-  useEffect(() => {
-    fetchUserId();
-  }, []);
 
-  // Fetch score after userId has been set
+  // Poll for score updates every 5 seconds
   useEffect(() => {
-    if (userId) {
-      fetchScore();
-    }
+    const intervalId = setInterval(fetchScore, 5000);
+    return () => clearInterval(intervalId); // Cleanup interval on component unmount
   }, [userId]);
 
   return (
@@ -94,7 +94,6 @@ export default function Level() {
       <main className="relative z-10 h-screen">
         <ConnectingPaths islands={islands} unlockedLevel={unlockedLevel} />
 
-        {/* Render the islands with the correct unlocked state */}
         {islands.map((island, index) => {
           const isUnlocked = score >= unlockThresholds[index];
           return (
@@ -104,13 +103,12 @@ export default function Level() {
               isUnlocked={isUnlocked}
               score={score}
               unlockThreshold={unlockThresholds[index]}
+              backgroundImage={island.image} 
             />
           );
         })}
-        {/* <DetectiveBobblehead level={unlockedLevel} islands={islands} /> */}
       </main>
 
-      {/* Modal logic */}
       {showModal && (
         <LevelModal
           location={{ id: unlockedLevel }}

@@ -234,8 +234,17 @@ function LevelModal({ location, onClose }) {
     setUserAnswer("");
   };
 
+  const handleOutsideClick = (e) => {
+    if (e.target.id === "modal-overlay") {
+      onClose(); 
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center">
+    <div 
+    id = "modal-overlay"
+    className="fixed inset-0 bg-black bg-opacity-75 z-50 flex justify-center items-center"
+    onClick={handleOutsideClick}>
       <motion.div
         className="lg:w-[70em] lg:h-[70em] lg:mt-80 md:w-[45em] md:h-[45em] sm:w-[35em] sm:h-[35em] w-[30em] h-[30em] bg-contain bg-no-repeat bg-center relative"
         style={{ backgroundImage: "url('/scroll.png')" }}
@@ -326,6 +335,12 @@ function LevelModal({ location, onClose }) {
                             className="w-full px-4 py-3 bg-stone-900/50 border border-amber-900/30 rounded-lg text-amber-100 placeholder-amber-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                             value={userAnswer}
                             onChange={(e) => setUserAnswer(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault(); // Prevent the default form submission or other behaviors
+                                handleAnswerSubmit();
+                              }
+                            }}
                           />
                           <motion.button
                             whileHover={{ scale: 1.05 }}
