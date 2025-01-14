@@ -20,10 +20,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    // Test the HashAnswer function directly
-    HashAnswer(3); // Pass the question ID (3 in this case) to test
-  }, []);
+  
 
   if (loading) {
     return <Preloader />;
