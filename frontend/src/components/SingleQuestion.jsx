@@ -1,48 +1,44 @@
-import React, { useState } from "react";
-import { BiMinus } from "react-icons/bi";
-import { BsPlusLg } from "react-icons/bs";
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 export default function SingleQuestion({ question, answer }) {
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border border-amber-100 rounded-lg bg-amber-100]">
-      <article className="flex items-center justify-between p-4 lg:p-6">
-        {/* Question */}
-        <h2
-          className="cursor-pointer text-amber-100 text-base lg:text-lg font-medium"
-          onClick={() => setShowAnswer(!showAnswer)}
-        >
-          {question}
-        </h2>
-        
-        {/* Icons for expand/collapse */}
-        <ul>
-          {!showAnswer && (
-            <li>
-              <button onClick={() => setShowAnswer(true)}>
-                <BsPlusLg className="text-amber-100 text-xl" />
-              </button>
-            </li>
-          )}
-          {showAnswer && (
-            <li>
-              <button onClick={() => setShowAnswer(false)}>
-                <BiMinus className="text-amber-100 text-xl" />
-              </button>
-            </li>
-          )}
-        </ul>
-      </article>
-
-      {/* Answer section with conditional rendering */}
-      <article
-        className={`${
-          showAnswer && "border-t border-[#d8d5b0] p-4 lg:p-6"
-        } text-amber-100 text-sm lg:text-base`}
+    <motion.div
+      className="p-4 rounded-lg bg-stone-900/50 border border-stone-800/30 hover:border-amber-800/30 transition-all"
+      whileHover={{ scale: 1.005 }}
+    >
+      <button
+        className="w-full flex justify-between items-center text-left"
+        onClick={() => setIsOpen(!isOpen)}
       >
-        {showAnswer && <p>{answer}</p>}
-      </article>
-    </div>
+        <h3 className="text-lg font-medium text-amber-200">{question}</h3>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="text-amber-400"
+        >
+          <ChevronDown />
+        </motion.div>
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <p className="mt-4 text-amber-100/80 leading-relaxed pl-4 border-l-2 border-amber-800/30">
+              {answer}
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

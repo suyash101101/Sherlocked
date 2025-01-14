@@ -12,6 +12,7 @@ function ContestPage() {
   const [password, setPassword] = useState("");
   const [teamName, setTeamName] = useState("");
   const [showPassword, setShowPassword] = useState(false); // New state for password visibility
+  const [validationErrors, setValidationErrors] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -35,13 +36,13 @@ function ContestPage() {
         toast.error("Please fill in all fields");
         return;
       }
+
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      if (signInError) {
-        throw signInError;
-      }
+
+      if (signInError) throw signInError;
 
       const { data, error: fetchError } = await supabase
         .from("users")
@@ -54,48 +55,86 @@ function ContestPage() {
       }
       
       setCookie("userId", data.id, { path: "/" });
+      toast.success("Welcome back, Detective!");
       navigate("/sherlock");
-
       window.location.reload();
 
     } catch (error) {
-      toast.error("Wrong Credentials. Sign Up Before Login");
-      console.error(error);
+      console.error('Login error:', error);
+      toast.error("Invalid credentials. Please check your details and try again.");
     }
   };
 
-  const handleSignUp = async () => {
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    setValidationErrors({});
+    
+    // Validation checks
+    const errors = {};
+    
+    if (teamName.length < 3 || teamName.length > 30) {
+      errors.teamName = "Team name must be between 3 and 30 characters";
+    }
+    
+    if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters long";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      Object.values(errors).forEach(error => toast.error(error));
+      return;
+    }
+
     try {
-      if (!email || !password || !teamName) {
-        toast.error("Please fill in all fields");
+      // Check for duplicate team name
+      const { data: existingTeam } = await supabase
+        .from('users')
+        .select('team_name')
+        .eq('team_name', teamName)
+        .single();
+
+      if (existingTeam) {
+        toast.error("Team name already taken");
         return;
       }
 
-      const { error: signUpError } = await supabase.auth.signUp({
+      // First create auth user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
       });
 
-      if (signUpError) {
-        throw signUpError;
-      } else {
-        toast.success("Signed up successfully");
+      if (authError) throw authError;
 
-        const { error: upsertError } = await supabase.from("users").upsert([
-          {
-            email,
-            password,
-            team_name: teamName,
-          },
-        ]);
+      // Create user profile without specifying ID (let it auto-increment)
+      const { data: userData, error: profileError } = await supabase
+        .from('users')
+        .insert([{ 
+          team_name: teamName,
+          email: email,
+          password: password,
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
 
-        if (upsertError) {
-          throw upsertError;
-        }
-      }
+      if (profileError) throw profileError;
+
+      toast.success("Sign up successful! Welcome to the investigation.");
+      
+      // Set cookie with the auto-generated ID
+      setCookie("userId", userData.id, { path: "/" });
+      navigate('/sherlock');
+      window.location.reload();
+
     } catch (error) {
-      console.error(error);
-      toast.error("User already exists or an error occurred");
+      console.error('Signup error:', error);
+      toast.error(error.message || "Error during sign up. Please try again.");
     }
   };
 
@@ -110,6 +149,23 @@ function ContestPage() {
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Failed to sign out. Please try again.");
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast.success("Login successful!");
+      navigate('/'); // Redirect to landing page
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
@@ -182,9 +238,10 @@ function ContestPage() {
                   placeholder="Detective Team Name"
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
-                  className="w-full bg-stone-800/50 border border-amber-900/20 rounded-lg py-3 px-10 
-                           text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600/50
-                           transition-all duration-200"
+                  className={`w-full bg-stone-800/50 border ${
+                    validationErrors.teamName ? 'border-red-500' : 'border-amber-900/20'
+                  } rounded-lg py-3 px-10 text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-600/50
+                  transition-all duration-200`}
                 />
               </div>
               

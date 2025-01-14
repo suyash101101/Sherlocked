@@ -19,6 +19,17 @@ function LevelModal({ location, onClose }) {
 
   const MAX_ATTEMPTS = 25;
 
+  const getRandomWrongMessage = () => {
+    const messages = [
+      "Not quite right, detective. Try another approach!",
+      "A good attempt, but there's more to uncover...",
+      "Keep investigating, you're on the right track!",
+      "Elementary, but not quite there yet...",
+      "The game is still afoot! Try again.",
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
   const fetchUserId = async () => {
     try {
       // Fetch authenticated user from auth

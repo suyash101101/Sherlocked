@@ -67,7 +67,27 @@ function QuestionPage() {
       } else {
         setShowError(true);
         setAnswer('');
-        toast.error(`Wrong answer! ${MAX_ATTEMPTS - result.attempts} attempts remaining`);
+        toast.error(
+          <div className="flex items-center gap-2">
+            <span className="text-lg">❌</span>
+            <div>
+              <p className="font-medium">Incorrect Deduction!</p>
+              <p className="text-sm">{`${MAX_ATTEMPTS - result.attempts} attempts remaining`}</p>
+            </div>
+          </div>,
+          {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            className: "bg-red-900/90 border border-red-700",
+            bodyClassName: "text-white",
+            progressClassName: "bg-red-500"
+          }
+        );
         setTimeout(() => setShowError(false), 500);
       }
     } catch (error) {

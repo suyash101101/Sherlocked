@@ -97,6 +97,15 @@ const Leaderboard = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
+  const getBorderClass = (position) => {
+    switch(position) {
+      case 1: return "border-l-4 border-amber-400";
+      case 2: return "border-l-4 border-gray-300";
+      case 3: return "border-l-4 border-amber-700";
+      default: return "";
+    }
+  };
+
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">

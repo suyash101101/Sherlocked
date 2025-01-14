@@ -79,6 +79,29 @@ export default function ScoreBoard() {
     return <Star className="text-amber-600/60 w-5 h-5" />;
   };
 
+  const fetchRank = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('leaderboard')
+        .select('team_id')
+        .order('total_score', { ascending: false })
+        .order('last_submission_at', { ascending: true });
+
+      if (error) throw error;
+
+      const position = data.findIndex(item => item.team_id === userId) + 1;
+      setRank(position);
+    } catch (err) {
+      console.error('Error fetching rank:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchRank();
+    }
+  }, [userId, score]);
+
   useEffect(() => {
     fetchUserId();
   }, []);
@@ -88,29 +111,6 @@ export default function ScoreBoard() {
       fetchScore();
     }
   }, [userId]);
-
-  useEffect(() => {
-    const fetchRank = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('leaderboard')
-          .select('team_id')
-          .order('total_score', { ascending: false })
-          .order('last_submission_at', { ascending: true });
-
-        if (error) throw error;
-
-        const position = data.findIndex(item => item.team_id === userId) + 1;
-        setRank(position);
-      } catch (err) {
-        console.error('Error fetching rank:', err);
-      }
-    };
-
-    if (userId) {
-      fetchRank();
-    }
-  }, [userId, score]);
 
   // Polling for updates
   useEffect(() => {

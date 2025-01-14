@@ -3,12 +3,12 @@ import { Clock, Timer } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 function Countdown() {
-  const TARGET_DATE = '2025-01-13T23:59:59';
+  const targetDate = new Date('2025-01-25T12:00:00');
   const [timeLeft, setTimeLeft] = useState(null);
 
   useEffect(() => {
     function calculateTimeLeft() {
-      const difference = +new Date(TARGET_DATE) - +new Date();
+      const difference = +new Date(targetDate) - +new Date();
       
       if (difference > 0) {
         return {
