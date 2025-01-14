@@ -3,6 +3,7 @@ import Questions from "./questions";
 import supabase from "../config/supabaseClient";
 import { updateScore } from '../config/supabaseClient1';
 import { motion, AnimatePresence } from 'framer-motion';
+import bcrypt from 'bcryptjs';
 import { Sparkles, BookOpen, ArrowLeft, Send, AlertCircle, CheckCircle2, Brain } from 'lucide-react';
 
 function LevelModal({ location, onClose }) {
@@ -180,7 +181,7 @@ function LevelModal({ location, onClose }) {
 
       if (questionError) throw questionError;
 
-      const isCorrect = userAnswer === questionData.answer;
+      const isCorrect =  await bcrypt.compare(userAnswer, questionData.answer);;
       const currentAttempt = attempts[selectedQuestion.id] || 0;
       const newAttempts = currentAttempt + 1;
       setCurrentAttempts(newAttempts);
