@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { useState } from 'react';
-import { Menu, X, MapPin, Trophy, Home as HomeIcon, LogOut, LogIn } from 'lucide-react';
+import { Menu, X, MapPin, Trophy, Home as HomeIcon, LogOut, LogIn, HelpCircleIcon, ScrollText, User, Info } from 'lucide-react';
 import { FaDiscord } from 'react-icons/fa';
 import ScoreBoard from './ScoreBoard';
 
@@ -21,7 +21,10 @@ function Navbar() {
     { name: 'Home', path: '/sherlock', icon: HomeIcon },
     { name: 'Map', path: '/level', icon: MapPin },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-    { name: 'Join the Ddetectives', path: 'https://discord.gg/JNj54Vvk ', icon: FaDiscord}
+    { name: 'Rules', path: '/rules', icon: ScrollText },
+    { name: 'FAQ', path: '/faq', icon: HelpCircleIcon },
+    { name: 'About', path: '/about', icon: Info },
+    //{ name: 'Announcements', path: 'https://discord.gg/JNj54Vvk ', icon: FaDiscord}
   ];
 
   return (

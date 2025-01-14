@@ -13,7 +13,8 @@ export const fetchLeaderboardData = async (searchQuery = '') => {
         *,
         users!inner(team_name)
       `)
-      .order('total_score', { ascending: false });
+      .order('total_score', { ascending: false })
+      .order('last_submission_at', { ascending: true });
     
     if (searchQuery) {
       query = query.ilike('users.team_name', `%${searchQuery}%`);
