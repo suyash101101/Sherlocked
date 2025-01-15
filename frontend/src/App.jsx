@@ -9,6 +9,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import FAQ from './Pages/FAQ';
 import RulesPage from './components/Rules';
 import About from './Pages/About';
+import ScrollToTop from './components/ScrollToTop';
 import HashAnswer from './components/Hashanswer';
 import { useState, useEffect } from 'react';
 
@@ -28,6 +29,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop/>
       <Layout>
         <Routes>
           <Route path="/" element={<ContestPage />} />
