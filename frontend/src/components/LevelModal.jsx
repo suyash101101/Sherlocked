@@ -16,6 +16,7 @@ function LevelModal({ location, onClose }) {
   const [userId, setUserId] = useState(null);
   const [currentAttempts, setCurrentAttempts] = useState(0);
   const [attempts, setAttempts] = useState({});
+  const [showWrongAnswerMessage, setShowWrongAnswerMessage] = useState(false);
 
   const MAX_ATTEMPTS = 25;
 
@@ -225,6 +226,8 @@ function LevelModal({ location, onClose }) {
 
         setSolvedQuestions(prev => new Set(prev).add(selectedQuestion.id));
       } else {
+        setShowWrongAnswerMessage(true);
+        setTimeout(() => setShowWrongAnswerMessage(false), 3000);
         // Update attempts for wrong answer
         await supabase
           .from("team_progress")
@@ -310,67 +313,90 @@ function LevelModal({ location, onClose }) {
                   </motion.div>
 
                   <AnimatePresence mode="wait">
-                    {solvedQuestions.has(selectedQuestion.id) ? (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        className="flex flex-col items-center gap-3 py-4"
-                      >
-                        <motion.div
-                          animate={{ rotate: [0, 15, -15, 0] }}
-                          transition={{ duration: 0.5, delay: 0.2 }}
-                        >
-                          <Sparkles className="w-12 h-12 text-amber-400" />
-                        </motion.div>
-                        <p className="text-green-400 font-bold text-lg">Brilliant Deduction!</p>
-                      </motion.div>
-                    ) : currentAttempts >= MAX_ATTEMPTS ? (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center py-4"
-                      >
-                        <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-2" />
-                        <p className="text-red-400 font-bold">Maximum attempts reached</p>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="space-y-4"
-                      >
-                        <div className="relative">
-                          <input
-                            type="text"
-                            placeholder="Enter your deduction..."
-                            className="w-full px-4 py-3 bg-stone-900/50 border border-amber-900/30 rounded-lg text-amber-100 placeholder-amber-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
-                            value={userAnswer}
-                            onChange={(e) => setUserAnswer(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault(); // Prevent the default form submission or other behaviors
-                                handleAnswerSubmit();
-                              }
-                            }}
-                          />
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleAnswerSubmit}
-                            className="absolute right-2 top-2 p-1.5 bg-amber-700/30 hover:bg-amber-600/40 rounded-md text-amber-100"
-                          >
-                            <Send className="w-5 h-5" />
-                          </motion.button>
-                        </div>
-                        
-                        <div className="flex justify-between items-center text-xs text-amber-700">
-                          <span>Attempts: {currentAttempts}/{MAX_ATTEMPTS}</span>
-                          <span>{MAX_ATTEMPTS - currentAttempts} deductions remaining</span>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+  {solvedQuestions.has(selectedQuestion.id) ? (
+    // Solved case: Brilliant Deduction animation
+    <motion.div
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      exit={{ scale: 0 }}
+      className="flex flex-col items-center gap-3 py-4"
+    >
+      <motion.div
+        animate={{ rotate: [0, 15, -15, 0] }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Sparkles className="w-12 h-12 text-amber-400" />
+      </motion.div>
+      <p className="text-green-400 font-bold text-lg">Brilliant Deduction!</p>
+    </motion.div>
+  ) : (
+    // Wrong Answer + Maximum Attempts Handling
+    <>
+      {currentAttempts < MAX_ATTEMPTS && showWrongAnswerMessage &&(
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.9, opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg"
+    >
+      <p className="flex items-center gap-2">
+        <AlertCircle className="w-5 h-5" />
+        {getRandomWrongMessage()}
+      </p>
+    </motion.div>
+  )}
+      {currentAttempts >= MAX_ATTEMPTS ? (
+        // Maximum attempts message
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-4"
+        >
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-2" />
+          <p className="text-red-400 font-bold">Maximum attempts reached</p>
+        </motion.div>
+      ) : (
+        // Input UI for answering
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="space-y-4"
+        >
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Enter your deduction..."
+              className="w-full px-4 py-3 bg-stone-900/50 border border-amber-900/30 rounded-lg text-amber-100 placeholder-amber-700/50 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault(); // Prevent the default form submission or other behaviors
+                  handleAnswerSubmit();
+                }
+              }}
+            />
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleAnswerSubmit}
+              className="absolute right-2 top-2 p-1.5 bg-amber-700/30 hover:bg-amber-600/40 rounded-md text-amber-100"
+            >
+              <Send className="w-5 h-5" />
+            </motion.button>
+          </div>
+
+          <div className="flex justify-between items-center text-xs text-amber-700">
+            <span>Attempts: {currentAttempts}/{MAX_ATTEMPTS}</span>
+            <span>{MAX_ATTEMPTS - currentAttempts} deductions remaining</span>
+          </div>
+        </motion.div>
+      )}
+    </>
+  )}
+</AnimatePresence>
+
 
                   <motion.button
                     whileHover={{ x: -5 }}
