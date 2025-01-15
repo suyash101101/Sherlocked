@@ -192,7 +192,7 @@ function LevelModal({ location, onClose }) {
 
       if (questionError) throw questionError;
 
-      const isCorrect =  await bcrypt.compare(userAnswer, questionData.answer);;
+      const isCorrect =  await bcrypt.compare(userAnswer, questionData.answer);
       const currentAttempt = attempts[selectedQuestion.id] || 0;
       const newAttempts = currentAttempt + 1;
       setCurrentAttempts(newAttempts);
