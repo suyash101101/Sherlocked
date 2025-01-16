@@ -1,5 +1,7 @@
 import React from "react";
 import { motion } from 'framer-motion';
+import DiscordButton from '../components/DiscordButton';
+import { Phone } from 'lucide-react';
 
 export default function About() {
   return (
@@ -40,6 +42,10 @@ export default function About() {
             <div className="fixed top-0 left-1/4 w-96 h-96 bg-amber-900/10 rounded-full blur-3xl" />
             <div className="fixed bottom-0 right-1/4 w-96 h-96 bg-stone-800/15 rounded-full blur-3xl" />
           </motion.div>
+
+          <div className="flex justify-center mb-8">
+            <DiscordButton />
+          </div>
 
           {/* About Content */}
           <motion.div
@@ -93,17 +99,24 @@ export default function About() {
                     <li className="flex items-start gap-2">
                       <span className="text-amber-500">•</span>
                       All India 4th place in Saras AI Clash at IIT Bombay
-                    </li>
+                </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-500">•</span>
                       All India 2nd place in Code-Red by IEEE
-                    </li>
-                  </ul>
+                </li>
+              </ul>
                 </div>
 
                 <div className="p-6 bg-stone-900/50 rounded-lg border border-stone-800/30">
                   <h2 className="text-xl font-bold text-amber-300 mb-4">Connect With Me</h2>
                   <div className="flex flex-wrap gap-4 justify-evenly">
+                    <a 
+                      href="tel:+917892799071"
+                      className="flex items-center gap-2 text-amber-100/80 hover:text-amber-400 transition-colors"
+                    >
+                      <Phone className="w-5 h-5" />
+                      +91 7892799071
+                    </a>
                     <a 
                       href="https://github.com/suyash101101"
                       target="_blank"
@@ -183,6 +196,13 @@ export default function About() {
                 <div className="p-6 bg-stone-900/50 rounded-lg border border-stone-800/30">
                   <h2 className="text-xl font-bold text-amber-300 mb-4">Connect With Me</h2>
                   <div className="flex flex-wrap gap-4 justify-evenly">
+                    <a 
+                      href="tel:+918310595970"
+                      className="flex items-center gap-2 text-amber-100/80 hover:text-amber-400 transition-colors"
+                    >
+                      <Phone className="w-5 h-5" />
+                      +91 8310595970
+                    </a>
                     <a 
                       href="https://github.com/Srishti-K15"
                       target="_blank"
