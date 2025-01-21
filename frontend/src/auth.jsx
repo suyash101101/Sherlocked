@@ -145,7 +145,7 @@ function ContestPage() {
 
       removeCookie("userId");
       toast.success("You have been logged out successfully.");
-      window.location.href = "/";
+      window.location.href = "/sherlocked";
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Failed to sign out. Please try again.");

@@ -14,7 +14,7 @@ function Navbar() {
   const handleLogout = () => {
     // Add your logout logic here
     localStorage.removeItem('token'); // or whatever auth token you're using
-    window.location.href = '/'; // or use navigate to redirect
+    window.location.href = '/sherlocked'; // or use navigate to redirect
   };
 
   const menuItems = [

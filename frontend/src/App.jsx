@@ -28,14 +28,14 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename="/sherlocked">
       <ScrollToTop/>
       <Layout>
         <Routes>
           <Route path="/" element={<ContestPage />} />
           <Route path="/sherlock" element={<Home />} />
           <Route path="/level" element={<ProtectedRoute><Level /></ProtectedRoute>} />
-          <Route path="rules" element={<RulesPage />} />
+          <Route path="/rules" element={<RulesPage />} />
           <Route path="/faq" element={<FAQ />} />
           <Route path='/leaderboard' element={<Leaderboard/>}/>
           <Route path='/about' element={<About/>}/>

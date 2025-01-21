@@ -7,4 +7,11 @@ export default defineConfig({
   define: {
     'process.env': {}, // Polyfill for older libraries that rely on `process.env`
   },
+  build: {
+        chunkSizeWarningLimit: 1600
+  },
+  base: '/sherlocked/',
+  server: {
+	port: 4173
+}
 })
