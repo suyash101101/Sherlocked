@@ -54,7 +54,7 @@ function ContestPage() {
         throw fetchError || new Error("User not found");
       }
       
-      setCookie("userId", data.id, { path: "/" });
+      setCookie("userId", data.id, { path: "/sherlocked" });
       toast.success("Welcome back, Detective!");
       navigate("/sherlock");
       window.location.reload();
@@ -128,7 +128,7 @@ function ContestPage() {
       toast.success("Sign up successful! Welcome to the investigation.");
       
       // Set cookie with the auto-generated ID
-      setCookie("userId", userData.id, { path: "/" });
+      setCookie("userId", userData.id, { path: "/sherlocked" });
       navigate('/sherlock');
       window.location.reload();
 
@@ -145,7 +145,7 @@ function ContestPage() {
 
       removeCookie("userId");
       toast.success("You have been logged out successfully.");
-      window.location.href = "/sherlocked";
+      window.location.href = "/sherlocked/";
     } catch (error) {
       console.error("Error signing out:", error);
       toast.error("Failed to sign out. Please try again.");
