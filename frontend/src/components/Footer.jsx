@@ -10,7 +10,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto py-6 px-4">
         <div className="flex flex-col md:flex-row justify-center items-center gap-4">
           <p className="text-amber-200/60 font-serif text-sm">
-            © 2024 Sherlocked: The Cipher Hunt. All rights reserved.
+            © 2025 Sherlocked: The Cipher Hunt. All rights reserved.
           </p>
         </div>
       </div>
