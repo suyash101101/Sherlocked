@@ -169,6 +169,14 @@ function ContestPage() {
     }
   };
 
+  // Check if the button should be enabled
+  const isButtonEnabled = () => {
+    const now = new Date();
+    const start = new Date('2025-01-25T11:00:00'); 
+    const end = new Date('2025-01-25T23:00:00'); 
+    return now >= start && now <= end;
+  };
+
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-12 overflow-hidden">
       {/* Background image with overlay */}
@@ -283,22 +291,24 @@ function ContestPage() {
               <motion.button
                 type="button"
                 onClick={handleSignUp}
+              disabled={!isButtonEnabled()}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 bg-gradient-to-r from-amber-900/80 to-stone-900/80 text-stone-100 
+                className={`flex-1 bg-gradient-to-r from-amber-900/80 to-stone-900/80 text-stone-100 
                          py-3 px-6 rounded-lg transition-all duration-200 border border-amber-700/20 
-                         shadow-lg font-serif hover:from-amber-800/80 hover:to-stone-800/80"
+                          shadow-lg font-serif hover:from-amber-800/80 hover:to-stone-800/80 ${!isButtonEnabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 Begin Investigation
               </motion.button>
               <motion.button
                 type="button"
                 onClick={handleSignIn}
+              disabled={!isButtonEnabled()}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex-1 bg-gradient-to-r from-stone-800/80 to-amber-900/80 text-stone-100 
+                className={`flex-1 bg-gradient-to-r from-stone-800/80 to-amber-900/80 text-stone-100 
                          py-3 px-6 rounded-lg transition-all duration-200 border border-amber-700/20 
-                         shadow-lg font-serif hover:from-stone-700/80 hover:to-amber-800/80"
+                          shadow-lg font-serif hover:from-stone-700/80 hover:to-amber-800/80 ${!isButtonEnabled() ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 Resume Case
               </motion.button>
