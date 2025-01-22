@@ -172,7 +172,7 @@ function ContestPage() {
   // Check if the button should be enabled
   const isButtonEnabled = () => {
     const now = new Date();
-    const start = new Date('2025-01-22T11:00:00'); 
+    const start = new Date('2025-01-25T11:00:00'); 
     const end = new Date('2025-01-25T23:00:00'); 
     return now >= start && now <= end;
   };

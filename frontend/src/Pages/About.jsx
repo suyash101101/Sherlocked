@@ -60,7 +60,7 @@ export default function About() {
               <div className="text-center">
                 <div className="relative w-48 h-48 mx-auto mb-6">
                   <img 
-                    src="/PHOTO-2024-12-28.jpg"
+                    src="/PHOTO-anshi.png"
                     alt="Anshi Sachan"
                     className="rounded-full w-full h-full object-cover border-4 border-amber-800/30"
                   />
@@ -71,8 +71,7 @@ export default function About() {
                 <div className="p-6 bg-stone-900/50 rounded-lg border border-stone-800/30">
                   <h2 className="text-xl font-bold text-amber-300 mb-4">About Me</h2>
                   <p className="text-amber-100/80 leading-relaxed">
-                  As a passionate systems and backend developer, I'm driven by building high-performance, user-centric solutions. I specialize in Rust, leveraging its power to create scalable, efficient systems that seamlessly bridge low-level programming with exceptional user experiences.
-                  </p>
+                  Passionate about CP, Web Dev, and ML, I focus on creating efficient, user-centric solutions to real-world problems. With experience in building innovative applications, contributing to open-source, and participating in hackathons, I thrive on learning, collaboration, and growth.                  </p>
                 </div>
 
                 <div className="p-6 bg-stone-900/50 rounded-lg border border-stone-800/30">
@@ -81,19 +80,22 @@ export default function About() {
                     
                     <li className="flex items-start gap-2">
                       <span className="text-amber-500">•</span>
-                      Gaining hands-on experience with Rust through a systems programming project.
+                      Secured a spot among the top 30 teams in MIT Hackathon'24
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-500">•</span>
-                      Building expertise in backend tools like Supabase, React, and Node.js.
+                      Ranked among the top 50 teams in TATA Elxsi Teleport Season 2 Case Study
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-500">•</span>
-                      Actively contributing to technical club activities and fostering collaboration.
+                      Developed the official websites for E-Cell NITK and E-Summit, with interactive, responsive features                   </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-amber-500">•</span>
+                      Contributor at Girls Script Summer of Code- Extended'24
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-500">•</span>
-                      Developing strong problem-solving and analytical skills through challenging technical projects and collaborative efforts.
+                      Worked on projects like Real-Time Motion Detection for Automatic Survelliance and Gamified Tourism App
                     </li>
                   </ul>
                 </div>
@@ -102,14 +104,14 @@ export default function About() {
                   <h2 className="text-xl font-bold text-amber-300 mb-4">Connect With Me</h2>
                   <div className="flex flex-wrap gap-4 justify-evenly">
                     <a 
-                      href="tel:+918310595970"
+                      href="tel:+917985546729"
                       className="flex items-center gap-2 text-amber-100/80 hover:text-amber-400 transition-colors"
                     >
                       <Phone className="w-5 h-5" />
-                      +91 8310595970
+                      +91 7985546729
                     </a>
                     <a 
-                      href="https://github.com/Srishti-K15"
+                      href="https://github.com/anshi05"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-amber-100/80 hover:text-amber-400 transition-colors"
@@ -120,7 +122,7 @@ export default function About() {
                       GitHub
                     </a>
                     <a 
-                      href="https://www.linkedin.com/in/srishti-kumari15"
+                      href="https://www.linkedin.com/in/anshi-sachan/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-amber-100/80 hover:text-amber-400 transition-colors"
@@ -131,7 +133,7 @@ export default function About() {
                       LinkedIn
                     </a>
                     <a 
-                      href="mailto:srishtikjaiswal@gmail.com"
+                      href="mailto:anshijio123@gmail.com"
                       className="flex items-center gap-2 text-amber-100/80 hover:text-amber-400 transition-colors"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
