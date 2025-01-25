@@ -13,7 +13,7 @@ const islands = [
   { id: 5, name: "Buckingham Palace", x: 70, y: 22, image: "/221b.png" },
 ];
 
-const unlockThresholds = [0, 300, 800, 1500, 2500];
+const unlockThresholds = [0, 300, 800, 1000, 1500];
 
 export default function Level() {
   const [unlockedLevel, setUnlockedLevel] = useState(1);
